@@ -1,5 +1,5 @@
 from functools import wraps
-
+import smtplib
 from flask import Flask, render_template, redirect, url_for, flash, request, abort
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
@@ -52,6 +52,14 @@ def admin_only(f):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+def send_mail(name, email, phone_number, message):
+    email_message = f"Subject:New Message\n\nName: {name}\nEmail: {email}\n Phone: {phone_number}\n Message: {message}"
+    with smtplib.SMTP("smtp.gmail.com") as connection:
+        connection.starttls()
+        connection.login(user="natanailm486@gmail.com", password="jxctkjwqmwembmsi")
+        connection.sendmail("natanailm486@gmail.com", "natanailmihajlovski@gmail.com", email_message)
 
 
 # CONFIGURE TABLES
@@ -188,6 +196,15 @@ def about():
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        phone_number = request.form["phone_number"]
+        message = request.form["message"]
+
+        send_mail(name, email, phone_number, message)
+
+        return render_template("contact.html", msgSent=True)
     return render_template("contact.html")
 
 
